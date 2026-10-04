@@ -1,0 +1,52 @@
+generic_name,drug_class,focus
+norepinephrine,vasopressor,yes
+epinephrine,vasopressor,yes
+vasopressin,vasopressor,yes
+dobutamine,inotrope,yes
+milrinone,inotrope,yes
+phenylephrine,vasopressor,no
+dopamine,vasopressor,no
+angiotensin ii,vasopressor,no
+propofol,sedative,yes
+dexmedetomidine,sedative,yes
+midazolam,sedative,yes
+fentanyl,analgesic,yes
+lorazepam,sedative,no
+ketamine,sedative,no
+hydromorphone,analgesic,no
+morphine,analgesic,no
+rocuronium,neuromuscular blocker,no
+cisatracurium,neuromuscular blocker,no
+succinylcholine,neuromuscular blocker,no
+vecuronium,neuromuscular blocker,no
+amiodarone,antiarrhythmic,yes
+esmolol,rate control,yes
+diltiazem,rate control,no
+adenosine,antiarrhythmic,no
+procainamide,antiarrhythmic,no
+digoxin,rate control,no
+lidocaine,antiarrhythmic,no
+nicardipine,antihypertensive,yes
+clevidipine,antihypertensive,no
+labetalol,antihypertensive,no
+hydralazine,antihypertensive,no
+nitroglycerin,vasodilator,no
+nitroprusside,vasodilator,no
+albumin,fluid,yes
+hetastarch,fluid,no
+sodium chloride,fluid,no
+dextrose,fluid,no
+lactated ringers,fluid,no
+heparin,anticoagulant,no
+argatroban,anticoagulant,no
+bivalirudin,anticoagulant,no
+alteplase,thrombolytic,no
+protamine,reversal agent,no
+tranexamic acid,antifibrinolytic,no
+hydrocortisone,corticosteroid,no
+furosemide,diuretic,no
+sodium bicarbonate,electrolyte,no
+calcium chloride,electrolyte,no
+magnesium sulfate,electrolyte,no
+potassium chloride,electrolyte,no
+regular insulin,hormone,no
