@@ -1,0 +1,20 @@
+[project]
+name = "uncertainty-aware-rag"
+version = "0.1.0"
+description = "Uncertainty-aware question answering over FDA drug labels for critical-care medications."
+readme = "README.md"
+authors = [
+    { name = "Elham Estiri", email = "253378490+ELES-safe-autonomy@users.noreply.github.com" }
+]
+requires-python = ">=3.12"
+dependencies = [
+    "python-dotenv>=1.2.4",
+    "requests>=2.34.2",
+]
+
+[project.scripts]
+uncertainty-aware-rag = "uncertainty_aware_rag:main"
+
+[build-system]
+requires = ["uv_build>=0.12.23,<0.13.0"]
+build-backend = "uv_build"
