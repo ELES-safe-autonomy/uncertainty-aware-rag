@@ -1,4 +1,4 @@
-generic_name,drug_class,focus
+generic_name,drug_class,focus,search_name
 norepinephrine,vasopressor,yes
 epinephrine,vasopressor,yes
 vasopressin,vasopressor,yes
@@ -36,7 +36,6 @@ albumin,fluid,yes
 hetastarch,fluid,no
 sodium chloride,fluid,no
 dextrose,fluid,no
-lactated ringers,fluid,no
 heparin,anticoagulant,no
 argatroban,anticoagulant,no
 bivalirudin,anticoagulant,no
@@ -49,4 +48,4 @@ sodium bicarbonate,electrolyte,no
 calcium chloride,electrolyte,no
 magnesium sulfate,electrolyte,no
 potassium chloride,electrolyte,no
-regular insulin,hormone,no
+regular insulin,hormone,no,insulin human
