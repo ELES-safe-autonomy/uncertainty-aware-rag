@@ -31,6 +31,11 @@ antiarrhythmics, fluids, anticoagulants and more). Selection rules: IV
 route only, single-ingredient products, newest label per drug. The drug
 list is in `config/drugs.csv`.
 
+**Known limitation:** lactated Ringer's, sodium chloride, lidocaine (IV) and
+alteplase (Activase) are excluded: openFDA search matched a different
+product with the same generic name (e.g. D5LR, a dexmedetomidine premix,
+a local anesthetic, Cathflo). Found by manual audit.
+
 ## Quick start
     uv sync
     copy .env.example .env      # then add your openFDA API key
