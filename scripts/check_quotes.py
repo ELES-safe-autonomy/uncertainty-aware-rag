@@ -17,7 +17,7 @@ def main():
     verified, problems = 0, []
     with QUESTIONS.open(newline="", encoding="utf-8") as f:
         for row in csv.DictReader(f):
-            if row["type"] == "not_in_label":
+            if row["type"] in ("not_in_label", "out_of_library"):
                 continue
             label_file = LABELS / f"{row['id'].rsplit('_q', 1)[0]}.json"
             if not label_file.exists():
