@@ -32,7 +32,7 @@ labetalol,antihypertensive,no
 hydralazine,antihypertensive,no
 nitroglycerin,vasodilator,no
 nitroprusside,vasodilator,no
-albumin,fluid,yes
+albumin,fluid,yes,albumin human
 hetastarch,fluid,no
 sodium chloride,fluid,no
 dextrose,fluid,no
