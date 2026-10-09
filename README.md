@@ -91,21 +91,29 @@ Orange: chunks of the drug the question is about. Red X: the question.
 Rings: the 5 retrieved chunks (green = strict, blue = loose,
 black = irrelevant), numbered by rank.
 
-**Success (norepinephrine starting rate).** The question lands among
-norepinephrine's dosing chunks; ranks 1 and 3 are the right section.
-Ranks 2, 4 and 5 are other drugs.
-![success](docs/figures/norepinephrine_q1.png)
+<table>
+  <tr>
+    <td align="center"><b>Success</b><br>norepinephrine starting rate</td>
+    <td align="center"><b>Right drug, wrong section</b><br>propofol fat and calories</td>
+    <td align="center"><b>Wrong drug</b><br>vasopressin in pregnancy</td>
+  </tr>
+  <tr>
+    <td><img src="docs/figures/norepinephrine_q1.png" width="300"></td>
+    <td><img src="docs/figures/propofol_q3.png" width="300"></td>
+    <td><img src="docs/figures/vasopressin_q4.png" width="300"></td>
+  </tr>
+</table>
 
-**Right drug, wrong section (propofol fat and calories).** The question
-lands inside propofol's dense cluster and every result is propofol, but
-mostly from the wrong part of the label.
-![wrong section](docs/figures/propofol_q3.png)
+- **Success:** the question lands among norepinephrine's dosing chunks;
+  ranks 1 and 3 are the right section, ranks 2, 4 and 5 are other drugs.
+- **Right drug, wrong section:** every result is propofol, but mostly from
+  the wrong part of the label.
+- **Wrong drug:** the question lands among *other drugs' pregnancy
+  sections*; ranks 1 to 4 are other drugs. Only rank 5 is vasopressin,
+  from the wrong section. "Pregnant" pulled the search more strongly than
+  the drug name.
 
-**Wrong drug (vasopressin in pregnancy).** The question lands in a
-cluster of *other drugs' pregnancy sections*: ranks 1 to 4 are other
-drugs. Only rank 5 is vasopressin, and from the wrong section. The word
-"pregnant" pulled the search more strongly than the drug name.
-![wrong drug](docs/figures/vasopressin_q4.png)
+*Click any figure to see it full size.*
 
 The orange dots are spread across the whole map: the embedding groups
 text by **type of section** (dosing near dosing, pregnancy near
@@ -133,7 +141,7 @@ is the evidence.
     uv run python scripts/fetch_labels.py
     uv run python -m uncertainty_aware_rag.index
     uv run python -m uncertainty_aware_rag.evaluate
-    uv run python -m uncertainty_aware_rag.plot <question_id>
+    uv run python -m uncertainty_aware_rag.plot norepinephrine_q1
 
 ## Project structure
     config/         drug list
