@@ -94,18 +94,18 @@ black = irrelevant), numbered by rank.
 **Success (norepinephrine starting rate).** The question lands among
 norepinephrine's dosing chunks; ranks 1 and 3 are the right section.
 Ranks 2, 4 and 5 are other drugs.
-![success](docs/figures/NOREPINEPHRINE_ID.png)
+![success](docs/figures/norepinephrine_q1.png)
 
 **Right drug, wrong section (propofol fat and calories).** The question
 lands inside propofol's dense cluster and every result is propofol, but
 mostly from the wrong part of the label.
-![wrong section](docs/figures/PROPOFOL_ID.png)
+![wrong section](docs/figures/propofol_q3.png)
 
 **Wrong drug (vasopressin in pregnancy).** The question lands in a
 cluster of *other drugs' pregnancy sections*: ranks 1 to 4 are other
 drugs. Only rank 5 is vasopressin, and from the wrong section. The word
 "pregnant" pulled the search more strongly than the drug name.
-![wrong drug](docs/figures/VASOPRESSIN_ID.png)
+![wrong drug](docs/figures/vasopressin_q4.png)
 
 The orange dots are spread across the whole map: the embedding groups
 text by **type of section** (dosing near dosing, pregnancy near
