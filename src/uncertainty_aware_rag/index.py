@@ -36,6 +36,12 @@ def build_collection():
 def search(collection, query, n_results=5):
     return collection.query(query_texts=[query], n_results=n_results)
 
+def get_collection():
+    """Open the existing collection without rebuilding it."""
+    client = chromadb.PersistentClient(path=DB_PATH)
+    return client.get_collection(
+        COLLECTION_NAME, embedding_function=SentenceTransformerEmbeddingFunction()
+    )
 
 if __name__ == "__main__":
     collection = build_collection()
