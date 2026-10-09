@@ -15,8 +15,8 @@ look further, or abstain.
 - [x] Repo, environment (uv), secrets handling
 - [x] Data: 47 openFDA drug labels, audited and frozen as a snapshot
 - [x] Evaluation set: 44 questions with an answer key
-- [x] RAG baseline: loading, section-aware chunking, Chroma index, first query
-- [ ] Retrieval evaluation on the full question set
+- [x] RAG baseline: loading, section-aware chunking, Chroma index
+- [x] Retrieval evaluation on the full question set
 - [ ] Retrieval improvements (filtering, query expansion, re-ranking)
 - [ ] Answer generation with citations and abstention
 - [ ] Agent with tools (label search, adverse events, drug-name normalization)
@@ -63,33 +63,90 @@ Out-of-library questions were written by hand.
 2. **Chunk** (`chunking.py`): each section is split on its own (never
    across sections or labels), 1000 characters then 256 tokens, giving
    2516 chunks tagged with drug and section.
-3. **Index and search** (`index.py`): Chroma with the
-   all-MiniLM-L6-v2 embedding model.
+3. **Index and search** (`index.py`): Chroma with the all-MiniLM-L6-v2
+   embedding model.
 
-## Findings so far
-**1. Retrieval finds the topic, not the drug.** Query: "What is the
-maximum infusion rate for norepinephrine?" Only 2 of the top 5 results
-came from norepinephrine, and neither was its dosage section. The other
-3 were dosage sections of different drugs (nitroprusside, heparin,
-procainamide). Embeddings capture *what kind of question* more strongly
-than *which drug*. Planned fixes: filter by drug, hybrid keyword search,
-re-ranking.
+## Retrieval baseline (32 questions)
+Every answerable and ambiguous question was run through search (top 5).
+Each retrieved chunk is judged automatically against the answer key:
 
-**2. The token splitter alters text.** The splitter lowercases text and
-changes spacing. In one chunk, "1,500 units/hour" became
-"1, 500 units / hour". In a dosing domain this is unacceptable. Planned
-fix: a splitter that returns exact slices of the original text, plus a
-test that every chunk appears word for word in its source.
+- **strict**: right drug **and** right label section
+- **loose**: right drug, any section
+- **irrelevant**: wrong drug
+
+| Metric | Strict | Loose | Plain meaning |
+|---|---|---|---|
+| Hit rate@5 | 0.66 | 0.91 | Search finds the right **drug** for 91% of questions, but the right **section** for only 66%. |
+| Precision@5 | 0.20 | 0.60 | On average, only 1 of the 5 results is the right section; 3 of 5 are the right drug. |
+| MRR | 0.46 | 0.78 | The first right-section result typically appears around rank 2. |
+
+**Main finding:** search usually finds the right drug, then often picks
+the wrong part of its label. For about a third of questions, the exact
+answer location never appears in the top 5. Per-question results are in
+`eval/results/retrieval_baseline.csv`.
+
+### What retrieval looks like
+Each chunk's embedding is projected to 2D with UMAP. Gray: all chunks.
+Orange: chunks of the drug the question is about. Red X: the question.
+Rings: the 5 retrieved chunks (green = strict, blue = loose,
+black = irrelevant), numbered by rank.
+
+<table>
+  <tr>
+    <td align="center"><b>Success</b><br>norepinephrine starting rate</td>
+    <td align="center"><b>Right drug, wrong section</b><br>propofol fat and calories</td>
+    <td align="center"><b>Wrong drug</b><br>vasopressin in pregnancy</td>
+  </tr>
+  <tr>
+    <td><img src="docs/figures/norepinephrine_q1.png" width="300"></td>
+    <td><img src="docs/figures/propofol_q3.png" width="300"></td>
+    <td><img src="docs/figures/vasopressin_q4.png" width="300"></td>
+  </tr>
+</table>
+
+- **Success:** the question lands among norepinephrine's dosing chunks;
+  ranks 1 and 3 are the right section, ranks 2, 4 and 5 are other drugs.
+- **Right drug, wrong section:** every result is propofol, but mostly from
+  the wrong part of the label.
+- **Wrong drug:** the question lands among *other drugs' pregnancy
+  sections*; ranks 1 to 4 are other drugs. Only rank 5 is vasopressin,
+  from the wrong section. "Pregnant" pulled the search more strongly than
+  the drug name.
+
+*Click any figure to see it full size.*
+
+The orange dots are spread across the whole map: the embedding groups
+text by **type of section** (dosing near dosing, pregnancy near
+pregnancy) much more than by **drug**. That is the root cause of
+wrong-drug retrieval.
+
+*Caution:* UMAP squeezes 384 dimensions into 2, so distances in these
+plots are distorted. The figures are for intuition; the metrics table
+is the evidence.
+
+## Known issues
+- **The token splitter alters text.** It lowercases text and changes
+  spacing: in one chunk, "1,500 units/hour" became "1, 500 units / hour".
+  Planned fix: a splitter that returns exact slices of the original text,
+  plus a test that every chunk appears word for word in its source.
+
+## Next steps
+- Retrieval improvements, each measured against this baseline:
+  filtering by drug, query expansion, re-ranking.
+- Fix the token splitter and re-measure.
 
 ## Quick start
     uv sync
     copy .env.example .env      # then add your openFDA API key
     uv run python scripts/fetch_labels.py
     uv run python -m uncertainty_aware_rag.index
+    uv run python -m uncertainty_aware_rag.evaluate
+    uv run python -m uncertainty_aware_rag.plot norepinephrine_q1
 
 ## Project structure
-    config/        drug list
-    data/labels/   label snapshot (openFDA, Oct 2026)
-    eval/          evaluation questions
-    scripts/       data tools: fetcher, question merge, quote check
-    src/           the pipeline: ingest, chunking, index
+    config/         drug list
+    data/labels/    label snapshot (openFDA, Oct 2026)
+    eval/           evaluation questions and results
+    docs/figures/   retrieval plots
+    scripts/        data tools: fetcher, question merge, quote check
+    src/            the pipeline: ingest, chunking, index, evaluate, plot
