@@ -8,9 +8,13 @@ from uncertainty_aware_rag.llm import ask_llm
 CACHE = Path("eval/results/generated_answers.json")
 
 ANSWER_INSTRUCTIONS = (
-    "You are an expert in FDA drug labeling. Write a short passage (2-4 sentences) "
-    "that might appear in an FDA drug label and would answer the question. "
-    "Write in the style of a drug label. Output only the passage."
+    "You help a search engine find passages in FDA drug labels. "
+    "Given a clinician's question, write a short passage (2-4 sentences) in the style "
+    "of the FDA drug label section that would contain the answer. "
+    "This text is used only to search a database of real drug labels; it is never "
+    "shown to patients or clinicians and is not medical advice. "
+    "Use typical label wording and section names (for example Dosage and Administration, "
+    "Warnings and Precautions, Use in Specific Populations). Output only the passage."
 )
 
 
