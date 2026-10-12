@@ -17,10 +17,9 @@ look further, or abstain.
 - [x] Evaluation set: 44 questions with an answer key
 - [x] RAG baseline: loading, section-aware chunking, Chroma index
 - [x] Retrieval evaluation on the full question set
-- [x] Retrieval improvement 1: query expansion with a generated answer
-- [ ] Retrieval improvement 2: query expansion with multiple queries
-- [ ] Retrieval improvement 3: re-ranking with a cross-encoder
-- [ ] Retrieval improvement 4: filtering by drug
+- [x] Retrieval improvement: query expansion (imaginary answer, multiple queries)
+- [ ] Retrieval improvement: re-ranking with a cross-encoder
+- [ ] Retrieval improvement: filtering by drug
 - [ ] Answer generation with citations and abstention
 - [ ] Agent with tools (label search, adverse events, drug-name normalization)
 - [ ] Deployment and monitoring
@@ -127,80 +126,46 @@ wrong-drug retrieval.
 plots are distorted. The figures are for intuition; the metrics table
 is the evidence.
 
-## Improvement 1: query expansion with a generated answer
+## Retrieval improvements: query expansion
+A clinician's question and the label text that answers it are written in
+different styles (short and conversational vs. formal label language).
+The embedding compares style as well as meaning, so the question often
+lands near the right drug but not on the right section. Query expansion
+uses an LLM to rewrite the query before searching. Two methods were
+tried, as taught in the DeepLearning.AI course *Advanced Retrieval for AI
+with Chroma*.
 
-### The problem it targets
-A clinician's question and the label text that answers it are written
-in different styles. The question is short and conversational ("What
-infusion dose and duration does the label flag as a risk factor for
-PRIS?"); the label is formal ("Propofol infusion syndrome ... has been
-associated with prolonged, high-dose infusions ..."). The embedding
-model compares styles as well as meaning, so the question often lands
-near the right drug but not on the right section.
+**Method 1: imaginary answer** (also called HyDE). The LLM writes a short
+passage that *sounds like* the label section that would answer the
+question; the search uses the question plus this passage. The passage
+does not need to be correct, only to sound like the right section. It is
+used for search only and is never shown to anyone.
 
-### The method
-Before searching, an LLM writes a short **imaginary answer**: 2 to 4
-sentences that sound like the label section that would contain the
-answer. The search then uses the question plus this imaginary answer.
+**Method 2: multiple queries.** The LLM writes up to 5 related questions.
+The original and each rewrite are searched separately, and the 6 result
+lists are merged with Reciprocal Rank Fusion (RRF): a chunk ranks higher
+if it appears near the top of several lists.
 
-    question -> LLM writes a label-style passage -> search with "question + passage"
-
-The imaginary answer does not need to be correct. It only needs to
-*sound like* the right section, so that the search lands in the right
-neighborhood. It is used for search only and is never shown to a user.
-(This idea is known as HyDE, Hypothetical Document Embeddings.)
-
-- **LLM:** `openai/gpt-oss-120b` via Groq (`llm.py`, swappable).
-- **Caching:** every generated answer is saved in
-  `eval/results/generated_answers.json`, so runs are reproducible and
-  cost nothing to repeat.
-- **Retries:** only on temporary errors (429 rate limit, 503 busy),
-  with a timeout and the SDK's hidden retries turned off.
-
-### A failure found along the way: refusals
-With the first instructions ("write a passage that would answer the
-question"), the LLM refused **3 of 32** questions (fentanyl re-dosing,
-norepinephrine infiltration, vasopressin in pregnancy). It treated them
-as requests for medical advice. The refusal text ("I'm sorry, I can't
-help with that") was then added to the search query and corrupted it.
-
-Two fixes, in order:
-1. **Fallback:** if the answer looks like a refusal, search with the
-   original question only. A safe default that never makes things worse.
-2. **Better instructions:** explain the real task to the LLM: write
-   label-style search text that is never shown to anyone and is not
-   medical advice. Result: **0 refusals**.
-
-Lesson: an LLM inside a pipeline can fail *silently*. Its output must
-be checked before it is used.
+Both use `openai/gpt-oss-120b` via Groq (`llm.py`). Every LLM output is
+cached in `eval/results/` so runs are reproducible, and calls are retried
+only on temporary errors (429, 503).
 
 ### Results (32 questions)
 
-| Metric | Baseline strict | Generated strict | Baseline loose | Generated loose |
-|---|---|---|---|---|
-| Hit rate@5 | 0.66 | **0.78** | 0.91 | **0.94** |
-| Precision@5 | 0.20 | **0.28** | 0.60 | **0.69** |
-| MRR | 0.46 | **0.62** | 0.78 | **0.83** |
+| Strict / loose | Baseline | Imaginary answer | Multiple queries |
+|---|---|---|---|
+| Hit rate@5 | 0.66 / 0.91 | **0.78 / 0.94** | 0.69 / 0.88 |
+| Precision@5 | 0.20 / 0.60 | **0.28 / 0.69** | 0.23 / 0.62 |
+| MRR | 0.46 / 0.78 | **0.62 / 0.83** | 0.48 / 0.78 |
 
-Per question (strict):
-- **4 gains, 0 losses** in hit rate: amiodarone_q2, dexmedetomidine_q4,
-  fentanyl_q2 and propofol_q1 now find the right section in the top 5.
-  The method fixed 4 of the 11 baseline misses.
-- The first correct result moved **earlier for 12 questions** and
-  **later for 3**.
-- It helped both answerable questions (hit rate 0.71 to 0.83) and
-  ambiguous ones (0.50 to 0.62).
-
-Per-question results are in `eval/results/retrieval_generated.csv`.
-
-### What it looks like
-Same question (propofol_q1), before and after. Purple X: the expanded
-query.
+**Imaginary answer wins on every metric:** 4 questions gained the right
+section in the top 5 and none lost it. Writing in label language moves
+the query into the right part of the map:
 
 <table>
   <tr>
     <td align="center"><b>Baseline</b><br>question only</td>
-    <td align="center"><b>Query expansion</b><br>question + generated answer</td>
+    <td align="center"><b>Imaginary answer</b><br>question + generated passage (purple X)</td>
   </tr>
   <tr>
     <td><img src="docs/figures/propofol_q1.png" width="400"></td>
@@ -208,23 +173,46 @@ query.
   </tr>
 </table>
 
-- **Baseline:** the question lands just outside the dense propofol
-  cluster. No result is the right section, and 2 of 5 are other drugs.
-- **Query expansion:** the expanded query moves into the cluster.
-  All 5 results are propofol, and the right section is ranked first.
+Baseline: the question lands just outside the propofol cluster; no result
+is the right section and 2 of 5 are other drugs. Imaginary answer: the
+query moves into the cluster; all 5 results are propofol and the right
+section is ranked first.
 
-### Limits and risks
-- **Small sample:** 32 questions, so a change of one question moves hit
-  rate by 3 points. The gains are consistent but not proven at scale.
-- **Run-to-run variation:** the LLM writes slightly different text each
-  time; regenerating all answers changed precision by a few points.
-  Caching keeps one run fixed for comparison.
-- **Hallucinated details:** imaginary answers can contain made-up doses.
-  This is acceptable only because they are used for search and never
-  shown. They must never reach the final answer.
-- **Cost and latency:** one extra LLM call per question.
-- **It doesn't fix wrong-drug retrieval at its root.** The embedding
-  still groups by section type; filtering by drug is the planned fix.
+**Multiple queries barely beats the baseline:** 4 gains (one, nicardipine_q4,
+fixed by no other method) but 3 losses. More queries bring in more
+candidates, but also more noise, and simple voting does not pick the best
+5. This method is meant to be paired with re-ranking (next step), which
+reorders a wide pool of candidates.
+
+### Failures found along the way
+- **Refusals.** The first imaginary-answer instructions made the LLM
+  refuse 3 of 32 questions as "medical advice," and the refusal text
+  ("I'm sorry, I can't...") was searched as if it were label text.
+  Fixed by a fallback to the plain question, then by explaining the real
+  task (search text, never shown to anyone): 0 refusals.
+- **Invented drugs.** A first version of the multi-query instructions
+  said "keep the drug name in every question." When the question named
+  no drug, the LLM made one up: all 5 rewrites of a vasopressin question
+  said "norepinephrine," and RRF treated the repeated mistake as
+  agreement. "Dex" was also read as dexamethasone instead of
+  dexmedetomidine. Removing that rule fixed the invented names, but
+  traded some strict accuracy for wider coverage.
+- **Questions without a drug name.** Some evaluation questions ("Can I
+  run *this* through the same line...") only make sense if the drug is
+  known from context. In a real app the drug would come from the screen
+  the clinician is on; this motivates filtering by drug.
+
+**Lesson:** an LLM inside a pipeline can fail silently. Its output must be
+checked before it is used, and a method that repeats the same LLM call
+can amplify one mistake.
+
+### Limits
+- 32 questions: one question moves hit rate by 3 points. The instructions
+  were not tuned further, to avoid fitting them to this test set.
+- LLM output varies between runs; caching fixes one run for comparison.
+- Imaginary answers can contain made-up doses. Acceptable only because
+  they are used for search and never shown.
+- One extra LLM call per question (cost and latency).
 
 ## Known issues
 - **The token splitter alters text.** It lowercases text and changes
@@ -233,9 +221,8 @@ query.
   plus a test that every chunk appears word for word in its source.
 
 ## Next steps
-- Query expansion with multiple queries: the LLM writes several related
-  questions; search with each and combine the results.
-- Re-ranking with a cross-encoder.
+- Re-ranking with a cross-encoder, replacing RRF voting for multiple
+  queries.
 - Filtering by drug, then hybrid search.
 - Fix the token splitter and re-measure.
 
@@ -246,6 +233,7 @@ query.
     uv run python -m uncertainty_aware_rag.index
     uv run python -m uncertainty_aware_rag.evaluate baseline
     uv run python -m uncertainty_aware_rag.evaluate generated
+    uv run python -m uncertainty_aware_rag.evaluate multi
     uv run python -m uncertainty_aware_rag.plot propofol_q1
     uv run python -m uncertainty_aware_rag.plot propofol_q1 generated
 
