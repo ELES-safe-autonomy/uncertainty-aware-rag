@@ -42,14 +42,14 @@ def reciprocal_rank(labels, wanted):
     return 0
 
 
-def run_eval(make_query, results_csv):
+def run_eval(retrieve, results_csv):
     """Run every question through search (after make_query) and report the metrics."""
     collection = get_collection()
     rows = []
     for q in load_questions():
         gold_drug = q["id"].rsplit("_q", 1)[0]
-        results = search(collection, make_query(q["question"]), n_results=K)
-        labels = [judge(m, gold_drug, q["label_section"]) for m in results["metadatas"][0]]
+        metadatas = retrieve(collection, q["question"])
+        labels = [judge(m, gold_drug, q["label_section"]) for m in metadatas]
         n_strict = labels.count("strict")
         n_loose = n_strict + labels.count("loose")  # loose includes strict
         rows.append({
@@ -82,13 +82,21 @@ def run_eval(make_query, results_csv):
     print(f"\nPer-question results saved to {results_csv}")
 
 
+def plain(collection, text):
+    """Normal top-K search; returns the metadata of each result."""
+    return search(collection, text, n_results=K)["metadatas"][0]
+
+
 def main():
     method = sys.argv[1] if len(sys.argv) > 1 else "baseline"
     if method == "baseline":
-        run_eval(lambda question: question, RESULTS_DIR / "retrieval_baseline.csv")
+        run_eval(plain, RESULTS_DIR / "retrieval_baseline.csv")
     elif method == "generated":
         from uncertainty_aware_rag.expansion import expanded_query
-        run_eval(expanded_query, RESULTS_DIR / "retrieval_generated.csv")
+        run_eval(lambda c, q: plain(c, expanded_query(q)), RESULTS_DIR / "retrieval_generated.csv")
+    elif method == "multi":
+        from uncertainty_aware_rag.expansion import multi_query_search
+        run_eval(multi_query_search, RESULTS_DIR / "retrieval_multi.csv")
     else:
         print(f"Unknown method: {method}")
 

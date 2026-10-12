@@ -1,0 +1,218 @@
+{
+  "My cirrhotic patient just had a big-volume paracentesis. How much 25% albumin should I give afterward?": [
+    "Albumin 25% dose after large\u2011volume paracentesis",
+    "Albumin 25% recommended volume for therapeutic paracentesis",
+    "Albumin 25% how many mL to give post\u2011paracentesis",
+    "Albumin 25% dosing guidelines for cirrhotic patients after paracentesis",
+    "Albumin 25% administration amount following big\u2011volume paracentesis"
+  ],
+  "Can I make a 5% solution at the bedside by diluting the 25% vials with sterile water?": [
+    "Could you please specify the drug name you are referring to?"
+  ],
+  "Can I run this through the same line as the packed red cells I'm transfusing?": [
+    "Could you let me know the specific drug you\u2019re asking about so I can generate appropriate search queries?"
+  ],
+  "In a septic ICU patient, how long can I expect the volume expansion from a dose of 25% albumin to last?": [
+    "Albumin 25% duration of plasma volume expansion",
+    "Albumin 25% how long does intravascular volume expansion last",
+    "Albumin 25% expected length of volume expansion in septic patients",
+    "Albumin 25% volume expanding effect time course",
+    "Albumin 25% persistence of plasma volume increase"
+  ],
+  "I only have a peripheral IV for an amiodarone drip that will run for several hours. What's the highest concentration I should mix it at?": [
+    "amiodarone peripheral IV infusion maximum concentration",
+    "amiodarone IV drip highest allowable concentration",
+    "amiodarone intravenous infusion concentration limit",
+    "amiodarone IV solution recommended concentration for peripheral line",
+    "amiodarone IV infusion maximum strength for peripheral administration"
+  ],
+  "My patient is on warfarin and we're starting amiodarone. How much should I cut back the warfarin?": [
+    "Warfarin dose adjustment when initiating amiodarone",
+    "Amiodarone effect on warfarin dosing recommendations",
+    "Warfarin dosage reduction recommended with amiodarone co\u2011administration",
+    "Guidance for warfarin dose change when starting amiodarone therapy",
+    "Amiodarone and warfarin interaction: recommended warfarin dose cutback"
+  ],
+  "If a patient accidentally gets too much IV amiodarone, can we use hemodialysis to pull it off?": [
+    "amiodarone overdose hemodialysis",
+    "amiodarone removal by dialysis",
+    "amiodarone renal clearance and dialysis suitability",
+    "amiodarone extracorporeal elimination methods",
+    "amiodarone toxicity treatment with hemodialysis"
+  ],
+  "Is it safe to keep someone on the IV amiodarone drip for a month or more instead of switching to oral?": [
+    "amiodarone IV infusion duration recommended",
+    "amiodarone intravenous therapy length of use",
+    "amiodarone IV to oral conversion safety considerations",
+    "amiodarone prolonged IV administration warnings",
+    "amiodarone maximum continuous IV infusion time"
+  ],
+  "Can I run amphotericin or diazepam through the same IV line as the dex drip?": [
+    "Amphotericin compatibility with dexamethasone IV infusion line",
+    "Can amphotericin be given through the same IV line as dexamethasone drip",
+    "Diazepam compatibility with dexamethasone IV infusion line",
+    "Can diazepam be administered via the same IV line as dexamethasone drip",
+    "Co\u2011administration of amphotericin and dexamethasone through a single IV line"
+  ],
+  "My sedated patient on dex suddenly has high urine output and a rising sodium. What cutoffs does the label use for suspecting diabetes insipidus?": [
+    "Does the dexmedetomidine label specify a urine output cutoff for suspecting diabetes insipidus?",
+    "What serum sodium level on the dexmedetomidine label triggers evaluation for diabetes insipidus?",
+    "How does the dexmedetomidine label define polyuria criteria for diabetes insipidus?",
+    "What monitoring parameters for diabetes insipidus are listed on the dexmedetomidine label?",
+    "Are there specific thresholds for diabetes insipidus in the adverse reaction section of the dexmedetomidine label?"
+  ],
+  "Does dex need a dose adjustment in a patient with a creatinine clearance around 20?": [
+    "Does dex dose need adjustment for creatinine clearance of 20 mL/min?",
+    "Dex dosing recommendations in patients with severe renal impairment (CrCl ~20).",
+    "Is a dose reduction recommended for dex in individuals with low creatinine clearance?",
+    "Renal dosing guidelines for dex when creatinine clearance is around 20\u202fmL/min.",
+    "Dex dosage modifications for patients with CrCl less than 30\u202fmL/min."
+  ],
+  "How much should I cut the dex infusion rate for a cirrhotic patient?": [
+    "dexmedetomidine dose adjustment in hepatic impairment",
+    "dexmedetomidine infusion rate reduction for cirrhotic patients",
+    "dexmedetomidine recommended dosing in liver disease",
+    "dex infusion rate modification in patients with liver failure",
+    "dexmedetomidine dosage guidelines for patients with cirrhosis"
+  ],
+  "After a single IV push of about 100 mcg, how long can I expect the pain relief to last before I need to redose?": [
+    "Fentanyl 100\u202fmcg IV push duration of analgesia?",
+    "How long does pain relief last after a single 100\u202fmcg IV dose of fentanyl?",
+    "What is the analgesic effect duration for a 100\u202fmcg IV push of fentanyl?",
+    "Fentanyl 100\u202fmcg IV single dose \u2013 how many hours of pain control?",
+    "When should a repeat dose be given after a 100\u202fmcg IV push of fentanyl?"
+  ],
+  "My patient was on phenelzine until about a week ago. Is it okay to use fentanyl for analgesia now?": [
+    "Can fentanyl be administered after phenelzine therapy?",
+    "Is concomitant use of phenelzine and fentanyl contraindicated?",
+    "What are the interaction warnings for phenelzine with fentanyl?",
+    "Does phenelzine increase the risk of fentanyl adverse effects?",
+    "Are there specific dosing recommendations for fentanyl following phenelzine discontinuation?"
+  ],
+  "If a patient on fentanyl plus a sedative stays hypotensive despite fluids, which vasopressor should I avoid?": [
+    "Fentanyl contraindicated vasopressor use",
+    "Fentanyl interaction with phenylephrine causing hypotension",
+    "Fentanyl avoid norepinephrine due to adverse reaction",
+    "Fentanyl plus sedative hypotension vasopressor warning",
+    "Fentanyl cautions against use of epinephrine for hypotension"
+  ],
+  "How much should I cut the fentanyl dose for a patient with cirrhosis?": [
+    "What is the recommended fentanyl dose reduction for patients with hepatic impairment?",
+    "How should fentanyl dosing be adjusted in patients with cirrhosis?",
+    "What dosage modifications are indicated for fentanyl in liver disease?",
+    "Is a dose cut of fentanyl advised for patients with severe hepatic dysfunction?",
+    "What are the fentanyl dosing guidelines for patients with compromised liver function?"
+  ],
+  "For a hypertensive patient who isn't already on oral nicardipine, what rate should I start the drip at, and how high can I titrate?": [
+    "nicardipine IV starting infusion rate for hypertensive patients not receiving oral nicardipine",
+    "nicardipine infusion initial dose for acute hypertension without prior oral therapy",
+    "nicardipine IV drip titration: maximum allowable infusion rate",
+    "nicardipine continuous infusion: recommended starting and maximum rates in adults",
+    "nicardipine IV dosage guidelines for titrating blood pressure in patients not on oral nicardipine"
+  ],
+  "My patient has severe aortic stenosis and needs IV blood pressure control. Is a nicardipine infusion okay to use?": [
+    "Is nicardipine infusion contraindicated in patients with severe aortic stenosis",
+    "Can nicardipine be used for IV blood pressure control in aortic stenosis",
+    "Does the nicardipine label warn against use in severe aortic stenosis",
+    "Is nicardipine safe for hypertensive emergencies in patients with aortic stenosis",
+    "Are there precautions for nicardipine infusion in severe aortic stenosis"
+  ],
+  "I have a kidney transplant patient on tacrolimus who needs a nicardipine drip. Do I need to do anything about the tacrolimus?": [
+    "Tacrolimus interaction with nicardipine infusion",
+    "Effect of nicardipine drip on tacrolimus blood levels",
+    "Tacrolimus dosage adjustment when coadministered with nicardipine",
+    "Monitoring tacrolimus concentrations during nicardipine therapy",
+    "Contraindications or precautions for tacrolimus use with nicardipine"
+  ],
+  "How much should I reduce the nicardipine infusion rate in a patient with cirrhosis?": [
+    "nicardipine infusion dosage adjustment in hepatic impairment",
+    "nicardipine dose reduction recommendations for patients with cirrhosis",
+    "nicardipine infusion rate modification in liver disease",
+    "nicardipine dosage guidelines for hepatic dysfunction",
+    "nicardipine infusion adjustments for severe liver impairment"
+  ],
+  "What rate should I start a norepinephrine drip at for an adult with severe hypotension, and where do most patients end up for maintenance?": [
+    "What is the recommended starting infusion rate for norepinephrine in adults with severe hypotension?",
+    "What initial norepinephrine drip rate is suggested for adult patients experiencing severe hypotension?",
+    "What maintenance infusion rate is typically used for norepinephrine in adult patients after initial dosing?",
+    "What are the recommended norepinephrine dosing guidelines (starting and maintenance) for adults with hypotension?",
+    "What dose range of norepinephrine infusion is advised for adults in severe hypotensive states?"
+  ],
+  "The norepi line just infiltrated into the patient's forearm. What do I inject locally and how much?": [
+    "What is the recommended phentolamine dose for treating norepinephrine extravasation?",
+    "How much phentolamine should be injected locally for a norepinephrine infiltration?",
+    "What is the phentolamine injection volume for norepinephrine line infiltration?",
+    "What dosage of phentolamine is advised for managing norepinephrine infiltration in the forearm?",
+    "What is the recommended local phentolamine concentration for norepinephrine extravasation?"
+  ],
+  "My patient takes amitriptyline at home. Is there any issue with starting norepinephrine?": [
+    "Is there an interaction between amitriptyline and norepinephrine?",
+    "Can amitriptyline be used concurrently with norepinephrine?",
+    "Does amitriptyline contraindicate the use of norepinephrine?",
+    "What are the safety considerations for amitriptyline and norepinephrine co\u2011administration?",
+    "Are there any warnings for combining amitriptyline with norepinephrine?"
+  ],
+  "My patient is volume overloaded. How concentrated can I make the norepinephrine bag?": [
+    "What is the maximum concentration for norepinephrine infusion?",
+    "Norepinephrine dilution guidelines for IV bag preparation.",
+    "How concentrated can a norepinephrine bag be made?",
+    "Norepinephrine infusion bag concentration limits.",
+    "Recommended norepinephrine concentration for IV administration."
+  ],
+  "What infusion dose and duration does the label flag as a risk factor for PRIS in a sedated ICU patient?": [
+    "propofol infusion dose risk factor for PRIS",
+    "propofol infusion duration risk factor for PRIS",
+    "propofol recommended maximum infusion rate to avoid PRIS",
+    "propofol prolonged infusion warning for PRIS",
+    "propofol high dose infusion warning PRIS risk"
+  ],
+  "For a newly intubated adult in the ICU, what rate should I start the propofol drip at, and by how much can I bump it up?": [
+    "propofol infusion starting rate adult intubated ICU",
+    "propofol drip initial dosing adult postoperative sedation",
+    "propofol titration increment adult critical care",
+    "propofol infusion maximum dose adult ICU",
+    "propofol dosage adjustment guidelines adult ventilation"
+  ],
+  "My patient is also getting parenteral nutrition with lipids. How much fat and how many calories does each mL of the propofol drip add?": [
+    "propofol calories per mL",
+    "propofol fat content per mL",
+    "propofol energy (kcal) per mL",
+    "propofol lipid calories per mL",
+    "propofol kcal and fat per mL drip"
+  ],
+  "Is it acceptable to use a continuous propofol infusion to sedate an intubated child in the PICU?": [
+    "Propofol continuous infusion for pediatric sedation in intubated patients",
+    "Propofol use in children for continuous sedation in the ICU",
+    "Propofol pediatric dosing recommendations for continuous infusion",
+    "Propofol contraindications and safety for continuous infusion in children",
+    "Propofol guidelines for sedation of intubated pediatric patients"
+  ],
+  "What rate should I start the infusion at for a patient in septic shock, and how does that compare to someone post-cardiac surgery?": [
+    "norepinephrine infusion start rate septic shock",
+    "norepinephrine initial dosing septic shock infusion",
+    "norepinephrine infusion rate post cardiac surgery",
+    "norepinephrine dosage guidelines septic shock versus post\u2011cardiac surgery",
+    "norepinephrine starting infusion rate comparison septic shock and cardiac surgery"
+  ],
+  "Once I've weaned a patient off the drip, what complication should I be watching for and what should I monitor?": [
+    "dopamine infusion weaning complications monitor",
+    "dopamine drip discontinuation what adverse effects to watch for",
+    "after stopping dopamine infusion what should be monitored",
+    "dopamine IV taper adverse events after weaning",
+    "dopamine wean rebound hypotension monitoring guidelines"
+  ],
+  "My patient takes lithium at home. Could that blunt the blood pressure response to this drug?": [
+    "Lithium effect on blood pressure response to lisinopril",
+    "Lithium interaction with amlodipine and blood pressure control",
+    "Lithium impact on efficacy of beta\u2011blockers for hypertension",
+    "Lithium and losartan: does lithium blunt blood pressure response",
+    "Lithium use and reduced response to hydrochlorothiazide in hypertension"
+  ],
+  "For a pregnant patient in her third trimester with vasodilatory shock, how much should I increase the dose?": [
+    "Norepinephrine dose increase for vasodilatory shock in third\u2011trimester pregnancy",
+    "Norepinephrine dosing adjustments during third trimester of pregnancy",
+    "Norepinephrine recommended dose escalation for pregnant patients in late pregnancy with vasodilatory shock",
+    "Norepinephrine dose modification in third\u2011trimester pregnant women experiencing vasodilatory shock",
+    "Norepinephrine guidance on increasing dose in third\u2011trimester pregnancy for vasodilatory shock"
+  ]
+}
