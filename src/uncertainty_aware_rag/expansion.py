@@ -24,5 +24,17 @@ def generated_answer(question):
     return cache[question]
 
 
+REFUSAL_PHRASES = ("sorry", "can't", "can\u2019t", "cannot provide", "unable to")
+
+
+def is_refusal(text):
+    """True if the LLM declined instead of writing a label-style passage."""
+    return any(phrase in text.lower() for phrase in REFUSAL_PHRASES)
+
+
 def expanded_query(question):
-    return f"{question} {generated_answer(question)}"
+    """Question + imagined answer; falls back to the plain question if the LLM refused."""
+    answer = generated_answer(question)
+    if is_refusal(answer):
+        return question
+    return f"{question} {answer}"
