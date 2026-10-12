@@ -17,7 +17,10 @@ look further, or abstain.
 - [x] Evaluation set: 44 questions with an answer key
 - [x] RAG baseline: loading, section-aware chunking, Chroma index
 - [x] Retrieval evaluation on the full question set
-- [ ] Retrieval improvements (filtering, query expansion, re-ranking)
+- [x] Retrieval improvement 1: query expansion with a generated answer
+- [ ] Retrieval improvement 2: query expansion with multiple queries
+- [ ] Retrieval improvement 3: re-ranking with a cross-encoder
+- [ ] Retrieval improvement 4: filtering by drug
 - [ ] Answer generation with citations and abstention
 - [ ] Agent with tools (label search, adverse events, drug-name normalization)
 - [ ] Deployment and monitoring
@@ -124,6 +127,105 @@ wrong-drug retrieval.
 plots are distorted. The figures are for intuition; the metrics table
 is the evidence.
 
+## Improvement 1: query expansion with a generated answer
+
+### The problem it targets
+A clinician's question and the label text that answers it are written
+in different styles. The question is short and conversational ("What
+infusion dose and duration does the label flag as a risk factor for
+PRIS?"); the label is formal ("Propofol infusion syndrome ... has been
+associated with prolonged, high-dose infusions ..."). The embedding
+model compares styles as well as meaning, so the question often lands
+near the right drug but not on the right section.
+
+### The method
+Before searching, an LLM writes a short **imaginary answer**: 2 to 4
+sentences that sound like the label section that would contain the
+answer. The search then uses the question plus this imaginary answer.
+
+    question -> LLM writes a label-style passage -> search with "question + passage"
+
+The imaginary answer does not need to be correct. It only needs to
+*sound like* the right section, so that the search lands in the right
+neighborhood. It is used for search only and is never shown to a user.
+(This idea is known as HyDE, Hypothetical Document Embeddings.)
+
+- **LLM:** `openai/gpt-oss-120b` via Groq (`llm.py`, swappable).
+- **Caching:** every generated answer is saved in
+  `eval/results/generated_answers.json`, so runs are reproducible and
+  cost nothing to repeat.
+- **Retries:** only on temporary errors (429 rate limit, 503 busy),
+  with a timeout and the SDK's hidden retries turned off.
+
+### A failure found along the way: refusals
+With the first instructions ("write a passage that would answer the
+question"), the LLM refused **3 of 32** questions (fentanyl re-dosing,
+norepinephrine infiltration, vasopressin in pregnancy). It treated them
+as requests for medical advice. The refusal text ("I'm sorry, I can't
+help with that") was then added to the search query and corrupted it.
+
+Two fixes, in order:
+1. **Fallback:** if the answer looks like a refusal, search with the
+   original question only. A safe default that never makes things worse.
+2. **Better instructions:** explain the real task to the LLM: write
+   label-style search text that is never shown to anyone and is not
+   medical advice. Result: **0 refusals**.
+
+Lesson: an LLM inside a pipeline can fail *silently*. Its output must
+be checked before it is used.
+
+### Results (32 questions)
+
+| Metric | Baseline strict | Generated strict | Baseline loose | Generated loose |
+|---|---|---|---|---|
+| Hit rate@5 | 0.66 | **0.78** | 0.91 | **0.94** |
+| Precision@5 | 0.20 | **0.28** | 0.60 | **0.69** |
+| MRR | 0.46 | **0.62** | 0.78 | **0.83** |
+
+Per question (strict):
+- **4 gains, 0 losses** in hit rate: amiodarone_q2, dexmedetomidine_q4,
+  fentanyl_q2 and propofol_q1 now find the right section in the top 5.
+  The method fixed 4 of the 11 baseline misses.
+- The first correct result moved **earlier for 12 questions** and
+  **later for 3**.
+- It helped both answerable questions (hit rate 0.71 to 0.83) and
+  ambiguous ones (0.50 to 0.62).
+
+Per-question results are in `eval/results/retrieval_generated.csv`.
+
+### What it looks like
+Same question (propofol_q1), before and after. Purple X: the expanded
+query.
+
+<table>
+  <tr>
+    <td align="center"><b>Baseline</b><br>question only</td>
+    <td align="center"><b>Query expansion</b><br>question + generated answer</td>
+  </tr>
+  <tr>
+    <td><img src="docs/figures/propofol_q1.png" width="400"></td>
+    <td><img src="docs/figures/propofol_q1_generated.png" width="400"></td>
+  </tr>
+</table>
+
+- **Baseline:** the question lands just outside the dense propofol
+  cluster. No result is the right section, and 2 of 5 are other drugs.
+- **Query expansion:** the expanded query moves into the cluster.
+  All 5 results are propofol, and the right section is ranked first.
+
+### Limits and risks
+- **Small sample:** 32 questions, so a change of one question moves hit
+  rate by 3 points. The gains are consistent but not proven at scale.
+- **Run-to-run variation:** the LLM writes slightly different text each
+  time; regenerating all answers changed precision by a few points.
+  Caching keeps one run fixed for comparison.
+- **Hallucinated details:** imaginary answers can contain made-up doses.
+  This is acceptable only because they are used for search and never
+  shown. They must never reach the final answer.
+- **Cost and latency:** one extra LLM call per question.
+- **It doesn't fix wrong-drug retrieval at its root.** The embedding
+  still groups by section type; filtering by drug is the planned fix.
+
 ## Known issues
 - **The token splitter alters text.** It lowercases text and changes
   spacing: in one chunk, "1,500 units/hour" became "1, 500 units / hour".
@@ -131,22 +233,27 @@ is the evidence.
   plus a test that every chunk appears word for word in its source.
 
 ## Next steps
-- Retrieval improvements, each measured against this baseline:
-  filtering by drug, query expansion, re-ranking.
+- Query expansion with multiple queries: the LLM writes several related
+  questions; search with each and combine the results.
+- Re-ranking with a cross-encoder.
+- Filtering by drug, then hybrid search.
 - Fix the token splitter and re-measure.
 
 ## Quick start
     uv sync
-    copy .env.example .env      # then add your openFDA API key
+    copy .env.example .env      # then add your openFDA and Groq API keys
     uv run python scripts/fetch_labels.py
     uv run python -m uncertainty_aware_rag.index
-    uv run python -m uncertainty_aware_rag.evaluate
-    uv run python -m uncertainty_aware_rag.plot norepinephrine_q1
+    uv run python -m uncertainty_aware_rag.evaluate baseline
+    uv run python -m uncertainty_aware_rag.evaluate generated
+    uv run python -m uncertainty_aware_rag.plot propofol_q1
+    uv run python -m uncertainty_aware_rag.plot propofol_q1 generated
 
 ## Project structure
     config/         drug list
     data/labels/    label snapshot (openFDA, Oct 2026)
-    eval/           evaluation questions and results
+    eval/           evaluation questions and results (incl. cached LLM answers)
     docs/figures/   retrieval plots
     scripts/        data tools: fetcher, question merge, quote check
-    src/            the pipeline: ingest, chunking, index, evaluate, plot
+    src/            the pipeline: ingest, chunking, index, llm, expansion,
+                    evaluate, plot

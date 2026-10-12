@@ -10,12 +10,13 @@ from chromadb.utils.embedding_functions import SentenceTransformerEmbeddingFunct
 
 from uncertainty_aware_rag.evaluate import judge, load_questions
 from uncertainty_aware_rag.index import get_collection
+from uncertainty_aware_rag.expansion import expanded_query
 
 OUT_DIR = Path("docs/figures")
 RING_COLORS = {"strict": "green", "loose": "blue", "irrelevant": "black"}
 
 
-def main(question_id):
+def main(question_id, method="baseline"):
     collection = get_collection()
     data = collection.get(include=["embeddings", "metadatas"])
     embeddings = np.array(data["embeddings"])
@@ -28,26 +29,26 @@ def main(question_id):
     reducer = umap.UMAP(random_state=0, transform_seed=0).fit(embeddings)
     points = reducer.embedding_  # 2D position of every chunk
 
-    query_emb = SentenceTransformerEmbeddingFunction()([q["question"]])
-    query_2d = reducer.transform(np.array(query_emb))
-    results = collection.query(query_texts=[q["question"]], n_results=5)
+    embed = SentenceTransformerEmbeddingFunction()
+    query_2d = reducer.transform(np.array(embed([q["question"]])))
+    search_text = q["question"]
+    if method == "generated":
+        search_text = expanded_query(q["question"])
+        expanded_2d = reducer.transform(np.array(embed([search_text])))
+    results = collection.query(query_texts=[search_text], n_results=5)
 
     plt.figure(figsize=(8, 8))
 
-    # TODO 1: make a True/False array: True where a chunk belongs to gold_drug
-    #   hint: np.array([m["drug"] == gold_drug for m in data["metadatas"]])
     is_target = np.array([m["drug"] == gold_drug for m in data["metadatas"]])
 
-    # TODO 2: draw two scatters:
-    #   all chunks where NOT is_target -> gray, small (s=5)
-    #   all chunks where is_target     -> orange, a bit bigger (s=15)
-    #   hint: points[~is_target, 0], points[~is_target, 1]  (~ means "not")
-    #   give each a label= for the legend, e.g. label=f"{gold_drug} chunks"
     plt.scatter(points[~is_target,0], points[~is_target,1], s=5, color="gray", label="other drugs")
     plt.scatter(points[is_target, 0], points[is_target, 1], s=15, color="orange", label=f"{gold_drug} chunks")
     plt.scatter(query_2d[:, 0], query_2d[:, 1], s=200, marker="X", color="red", label="query")
+    if method == "generated":
+        plt.scatter(expanded_2d[:, 0], expanded_2d[:, 1], s=200, marker="X", color="purple", label="expanded query", zorder=5)
+        plt.annotate("", xy=expanded_2d[0], xytext=query_2d[0],
+                     arrowprops=dict(arrowstyle="->", color="purple"))
 
-    # TODO 3: draw a ring around each of the 5 retrieved chunks
     for rank, (chunk_id, meta) in enumerate(zip(results["ids"][0], results["metadatas"][0]), start=1):
         label = judge(meta, gold_drug, q["label_section"])
         x, y = points[position[chunk_id]]
@@ -63,10 +64,11 @@ def main(question_id):
     plt.legend(loc="upper left", bbox_to_anchor=(1.01, 1), fontsize=8)
 
     OUT_DIR.mkdir(parents=True, exist_ok=True)
-    out_path = OUT_DIR / f"{question_id}.png"
+    suffix = "" if method == "baseline" else f"_{method}"
+    out_path = OUT_DIR / f"{question_id}{suffix}.png"
     plt.savefig(out_path, dpi=150, bbox_inches="tight")
     print(f"Saved {out_path}")
 
 
 if __name__ == "__main__":
-    main(sys.argv[1])
+    main(*sys.argv[1:])
