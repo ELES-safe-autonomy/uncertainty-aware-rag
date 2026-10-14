@@ -25,21 +25,23 @@ look further, or abstain.
 - [ ] Deployment and monitoring
 
 ## Data
-47 IV critical-care drug labels from openFDA: vasopressors, inotropes,
-sedatives, analgesics, paralytics, antiarrhythmics, antihypertensives,
-fluids, anticoagulants and electrolytes. The drug list is in
-`config/drugs.csv`.
+The library holds 47 FDA drug labels for IV medications used in critical
+care, downloaded from openFDA: vasopressors, inotropes, sedatives,
+analgesics, paralytics, antiarrhythmics, antihypertensives, fluids,
+anticoagulants and electrolytes (full list in `config/drugs.csv`). For
+each drug, the fetch script keeps only IV, single-ingredient products and
+picks the newest label. Searching by generic name alone turned out to be
+unreliable, because the same name can belong to a very different product.
+A manual check of every downloaded label caught five such mismatches:
 
-**Selection rules:** IV route only, single-ingredient products, newest
-label per drug.
+- **Albumin** returned a radioactive imaging agent. Fixed by searching for "albumin human".
+- **Lidocaine** returned a local anesthetic instead of the IV antiarrhythmic. Excluded.
+- **Alteplase** returned Cathflo, a low-dose product for clearing blocked catheters. Excluded.
+- **Sodium chloride** returned a dexmedetomidine premix diluted in saline. Excluded.
+- **Lactated Ringer's** returned D5LR, a different fluid that also contains dextrose. Excluded.
 
-**Manual audit:** automated rules let through wrong products with
-matching generic names. Fixed or excluded:
-- albumin matched a radioactive imaging agent (fixed: search "albumin human")
-- sodium chloride matched a dexmedetomidine premix (excluded)
-- lidocaine matched a local anesthetic, not the IV antiarrhythmic (excluded)
-- alteplase matched Cathflo, a catheter-clearing product (excluded)
-- lactated Ringer's matched D5LR, a different fluid (excluded)
+Lesson: automated filters can pass the wrong product without any error,
+so data has to be checked by eye before it is trusted.
 
 ## Evaluation set
 44 questions in `eval/questions.csv`:
@@ -106,21 +108,24 @@ black = irrelevant), numbered by rank.
   </tr>
 </table>
 
-- **Success:** the question lands among norepinephrine's dosing chunks;
-  ranks 1 and 3 are the right section, ranks 2, 4 and 5 are other drugs.
-- **Right drug, wrong section:** every result is propofol, but mostly from
-  the wrong part of the label.
-- **Wrong drug:** the question lands among *other drugs' pregnancy
-  sections*; ranks 1 to 4 are other drugs. Only rank 5 is vasopressin,
-  from the wrong section. "Pregnant" pulled the search more strongly than
-  the drug name.
+- **Success** (*"What rate should I start a norepinephrine drip at...?"*):
+  the question lands among norepinephrine's dosing text. Ranks 1 and 3
+  come from the right section (Dosage and Administration); ranks 2, 4 and
+  5 are other drugs' dosing sections, which look similar to the model.
+- **Right drug, wrong section** (*"How much fat and how many calories does
+  each mL of propofol add?"*): all 5 results are from the propofol label,
+  but mostly from the wrong section. The answer sits under Warnings and
+  Precautions, while the results come from parts of the label that
+  mention lipids more generally.
+- **Wrong drug** (*"For a pregnant patient in her third trimester with
+  vasodilatory shock, how much should I increase the dose?"*): the
+  question never names vasopressin, so the search can only match on
+  "pregnancy" and "shock." It lands among other drugs' pregnancy sections:
+  ranks 1 to 4 are other drugs, and only rank 5 is vasopressin, from the
+  wrong section. Without the drug name, there is nothing to point the
+  search to the right label. This is why filtering by drug is planned.
 
 *Click any figure to see it full size.*
-
-The orange dots are spread across the whole map: the embedding groups
-text by **type of section** (dosing near dosing, pregnancy near
-pregnancy) much more than by **drug**. That is the root cause of
-wrong-drug retrieval.
 
 *Caution:* UMAP squeezes 384 dimensions into 2, so distances in these
 plots are distorted. The figures are for intuition; the metrics table
@@ -132,19 +137,21 @@ different styles (short and conversational vs. formal label language).
 The embedding compares style as well as meaning, so the question often
 lands near the right drug but not on the right section. Query expansion
 uses an LLM to rewrite the query before searching. Two methods were
-tried, as taught in the DeepLearning.AI course *Advanced Retrieval for AI
-with Chroma*.
+tried. Both methods add an LLM to the pipeline **before the search**. The LLM
+rewrites the user's question into a better search query; the search
+itself does not change.
 
 **Method 1: imaginary answer** (also called HyDE). The LLM writes a short
-passage that *sounds like* the label section that would answer the
-question; the search uses the question plus this passage. The passage
-does not need to be correct, only to sound like the right section. It is
-used for search only and is never shown to anyone.
+passage that sounds like the label section that would answer the
+question. The search then uses the question plus this passage. The
+passage does not need to be correct, only to sound like the right
+section. It is used for search only and is never shown to anyone.
 
-**Method 2: multiple queries.** The LLM writes up to 5 related questions.
-The original and each rewrite are searched separately, and the 6 result
-lists are merged with Reciprocal Rank Fusion (RRF): a chunk ranks higher
-if it appears near the top of several lists.
+**Method 2: multiple queries.** The LLM rewrites the question in up to 5
+different ways. The original and each rewrite are searched separately,
+and the 6 result lists are combined into one top 5 using Reciprocal Rank
+Fusion (RRF): a chunk ranks higher if it appears near the top of several
+lists.
 
 Both use `openai/gpt-oss-120b` via Groq (`llm.py`). Every LLM output is
 cached in `eval/results/` so runs are reproducible, and calls are retried
@@ -152,40 +159,78 @@ only on temporary errors (429, 503).
 
 ### Results (32 questions)
 
-| Strict / loose | Baseline | Imaginary answer | Multiple queries |
-|---|---|---|---|
-| Hit rate@5 | 0.66 / 0.91 | **0.78 / 0.94** | 0.69 / 0.88 |
-| Precision@5 | 0.20 / 0.60 | **0.28 / 0.69** | 0.23 / 0.62 |
-| MRR | 0.46 / 0.78 | **0.62 / 0.83** | 0.48 / 0.78 |
-
-**Imaginary answer wins on every metric:** 4 questions gained the right
-section in the top 5 and none lost it. Writing in label language moves
-the query into the right part of the map:
+**Table 1.** Retrieval metrics for each method (strict = right drug and
+right section; loose = right drug, any section).
 
 <table>
   <tr>
-    <td align="center"><b>Baseline</b><br>question only</td>
-    <td align="center"><b>Imaginary answer</b><br>question + generated passage (purple X)</td>
+    <th rowspan="2">Metric</th>
+    <th colspan="2">Baseline</th>
+    <th colspan="2">Imaginary answer</th>
+    <th colspan="2">Multiple queries</th>
   </tr>
   <tr>
-    <td><img src="docs/figures/propofol_q1.png" width="400"></td>
-    <td><img src="docs/figures/propofol_q1_generated.png" width="400"></td>
+    <th><sub>strict</sub></th><th><sub>loose</sub></th>
+    <th><sub>strict</sub></th><th><sub>loose</sub></th>
+    <th><sub>strict</sub></th><th><sub>loose</sub></th>
+  </tr>
+  <tr>
+    <td>Hit rate@5</td>
+    <td>0.66</td><td>0.91</td>
+    <td><b>0.78</b></td><td><b>0.94</b></td>
+    <td>0.69</td><td>0.88</td>
+  </tr>
+  <tr>
+    <td>Precision@5</td>
+    <td>0.20</td><td>0.60</td>
+    <td><b>0.28</b></td><td><b>0.69</b></td>
+    <td>0.23</td><td>0.62</td>
+  </tr>
+  <tr>
+    <td>MRR</td>
+    <td>0.46</td><td>0.78</td>
+    <td><b>0.62</b></td><td><b>0.83</b></td>
+    <td>0.48</td><td>0.78</td>
   </tr>
 </table>
 
-Baseline: the question lands just outside the propofol cluster; no result
-is the right section and 2 of 5 are other drugs. Imaginary answer: the
-query moves into the cluster; all 5 results are propofol and the right
-section is ranked first.
+As Table 1 shows, the _imaginary answer_ is the clear winner: it improves
+every metric, gives 4 questions the right section in the top 5, and
+loses none. _Multiple queries_ helps much less: it also fixes 4 questions
+(including nicardipine_q4, which no other method fixes) but breaks 3
+others, so its metrics end up close to the _baseline_. These results are
+confirmed by the example in Figure 1, which shows the same question under
+all three methods. The question asks about PRIS, propofol's infusion
+syndrome, without naming propofol. With the baseline (a), the question
+lands just outside the propofol cluster: all results are propofol, but
+none is the right section. With the _imaginary answer_ (b), the label-style
+passage moves the query into the cluster, and the right section is ranked
+first. With _multiple queries_ (c), most rewrites keep only general words
+such as "infusion dose" and "duration," so they land among other drugs'
+dosing text. Together they outvote the original question, and all 5
+results are other drugs. Extra rewrites bring in more candidates but also
+more noise, and simple voting cannot pick the best 5. This is why the
+method is usually paired with _re-ranking_, the next step.
 
-**Multiple queries barely beats the baseline:** 4 gains (one, nicardipine_q4,
-fixed by no other method) but 3 losses. More queries bring in more
-candidates, but also more noise, and simple voting does not pick the best
-5. This method is meant to be paired with re-ranking (next step), which
-reorders a wide pool of candidates.
+**Figure 1.** One question (propofol_q1) under each method. Red X: the
+question; purple X: the expanded query or rewrites; rings: the top 5
+results (green = right section, blue = right drug, black = other drug).
+
+<table>
+  <tr>
+    <td align="center"><b>(a) _Baseline_</b></td>
+    <td align="center"><b>(b) _Imaginary answer_</b></td>
+    <td align="center"><b>(c) _Multiple queries_</b></td>
+  </tr>
+  <tr>
+    <td><img src="docs/figures/propofol_q1.png" width="300"></td>
+    <td><img src="docs/figures/propofol_q1_generated.png" width="300"></td>
+    <td><img src="docs/figures/propofol_q1_multi.png" width="300"></td>
+  </tr>
+</table>
 
 ### Failures found along the way
-- **Refusals.** The first imaginary-answer instructions made the LLM
+- **Refusals.** The first _imaginary-answer_ instructions made the LLM
   refuse 3 of 32 questions as "medical advice," and the refusal text
   ("I'm sorry, I can't...") was searched as if it were label text.
   Fixed by a fallback to the plain question, then by explaining the real
