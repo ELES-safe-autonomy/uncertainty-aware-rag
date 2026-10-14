@@ -11,6 +11,8 @@ from chromadb.utils.embedding_functions import SentenceTransformerEmbeddingFunct
 from uncertainty_aware_rag.evaluate import judge, load_questions
 from uncertainty_aware_rag.index import get_collection
 from uncertainty_aware_rag.expansion import expanded_query
+from uncertainty_aware_rag.expansion import expanded_query, multi_query_results, related_queries
+
 
 OUT_DIR = Path("docs/figures")
 RING_COLORS = {"strict": "green", "loose": "blue", "irrelevant": "black"}
@@ -35,8 +37,12 @@ def main(question_id, method="baseline"):
     if method == "generated":
         search_text = expanded_query(q["question"])
         expanded_2d = reducer.transform(np.array(embed([search_text])))
-    results = collection.query(query_texts=[search_text], n_results=5)
-
+    if method == "multi":
+        rewrites_2d = reducer.transform(np.array(embed(related_queries(q["question"]))))
+        ids, metas = multi_query_results(collection, q["question"])
+        results = {"ids": [ids], "metadatas": [metas]}
+    else:
+        results = collection.query(query_texts=[search_text], n_results=5)
     plt.figure(figsize=(8, 8))
 
     is_target = np.array([m["drug"] == gold_drug for m in data["metadatas"]])
@@ -48,6 +54,9 @@ def main(question_id, method="baseline"):
         plt.scatter(expanded_2d[:, 0], expanded_2d[:, 1], s=200, marker="X", color="purple", label="expanded query", zorder=5)
         plt.annotate("", xy=expanded_2d[0], xytext=query_2d[0],
                      arrowprops=dict(arrowstyle="->", color="purple"))
+    if method == "multi":
+        plt.scatter(rewrites_2d[:, 0], rewrites_2d[:, 1], s=100, marker="X",
+                    color="purple", label="rewritten queries", zorder=5)
 
     for rank, (chunk_id, meta) in enumerate(zip(results["ids"][0], results["metadatas"][0]), start=1):
         label = judge(meta, gold_drug, q["label_section"])

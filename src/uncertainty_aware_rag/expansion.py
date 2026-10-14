@@ -72,7 +72,7 @@ def related_queries(question):
     return [q for q in cache[question] if not is_refusal(q)][:5]
 
 
-def multi_query_search(collection, question, k=5, pool=10):
+def multi_query_results(collection, question, k=5, pool=10):
     """Search with the question + its rewrites; merge with Reciprocal Rank Fusion."""
     queries = [question] + related_queries(question)
     results = collection.query(query_texts=queries, n_results=pool)
@@ -82,4 +82,8 @@ def multi_query_search(collection, question, k=5, pool=10):
             scores[chunk_id] = scores.get(chunk_id, 0) + 1 / (60 + rank)
             metas[chunk_id] = meta
     best = sorted(scores, key=scores.get, reverse=True)[:k]
-    return [metas[c] for c in best]
+    return best, [metas[c] for c in best]
+
+def multi_query_search(collection, question, k=5, pool=10):
+    """Metadata only, for evaluation."""
+    return multi_query_results(collection, question, k, pool)[1]
