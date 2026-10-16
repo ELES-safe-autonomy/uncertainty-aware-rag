@@ -97,6 +97,12 @@ def main():
     elif method == "multi":
         from uncertainty_aware_rag.expansion import multi_query_search
         run_eval(multi_query_search, RESULTS_DIR / "retrieval_multi.csv")
+    elif method == "rerank":
+        from uncertainty_aware_rag.rerank import rerank_search
+        run_eval(lambda c, q: rerank_search(c, q)[1], RESULTS_DIR / "retrieval_rerank.csv")
+    elif method == "multi_rerank":
+        from uncertainty_aware_rag.rerank import multi_rerank_search
+        run_eval(lambda c, q: multi_rerank_search(c, q)[1], RESULTS_DIR / "retrieval_multi_rerank.csv")
     else:
         print(f"Unknown method: {method}")
 
